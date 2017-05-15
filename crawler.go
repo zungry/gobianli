@@ -30,6 +30,17 @@ func CheckErr(err error, funcName string) {
 }
 
 func Lawson() {
+	//Get all Urls need to be crawled
+	GetLawsonUrls()
+	//Get all items which is off
+	// save to ES
+}
+
+func Quanjia() {
+
+}
+
+func Kuaike() {
 
 }
 
