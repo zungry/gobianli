@@ -1,4 +1,5 @@
 package LinkedList
+//http://www.cnblogs.com/requelqi/p/3691711.html
 
 type ElementType interface{}
 
