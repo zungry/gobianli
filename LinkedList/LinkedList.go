@@ -42,5 +42,27 @@ func (list *LinkedList) Length() int {
 
 //Append append the node at the end of LinkedList
 func (list *LinkedList) Append(node *INode) {
+	current := list.Head
+	for {
+		if current.next == nil {
+			break
+		}
+		current = current.next
+	}
+	current.next = node
+	list.sizeInc()
+}
 
+//Prepend
+func (list *LinkedList) Prepend(node *INode) {
+	current := list.Head
+	node.next = current.next
+	current.next = node
+	list.sizeInc()
+}
+
+//sizeInc
+func (list *LinkedList) sizeInc() {
+	v := int(reflect.ValueOf((*list.Head).X).Int())
+	list.Head.X = v + 1
 }
