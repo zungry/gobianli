@@ -1,6 +1,8 @@
 package LinkedList
 
 import (
+	"errors"
+	"fmt"
 	"reflect"
 )
 
@@ -53,7 +55,7 @@ func (list *LinkedList) Append(node *INode) {
 	list.sizeInc()
 }
 
-//Prepend
+//Prepend nodes
 func (list *LinkedList) Prepend(node *INode) {
 	current := list.Head
 	node.next = current.next
@@ -61,8 +63,75 @@ func (list *LinkedList) Prepend(node *INode) {
 	list.sizeInc()
 }
 
+//Find node
+func (list *LinkedList) Find(x ElementType) (*INode, bool) {
+	empty := list.IsEmpty()
+	if empty {
+		fmt.Println("This is an empty list")
+		return nil, false
+	}
+	current := list.Head
+	for current.next != nil {
+		if current.X == x {
+			return current, true
+		}
+	}
+	if current.X == x {
+		return current, true
+	}
+	return nil, false
+}
+
+// Remove node
+func (list *LinkedList) Remove(x ElementType) error {
+	empty := list.IsEmpty()
+	if empty {
+		return errors.New("This is an empty list")
+	}
+	current := list.Head
+	for current.next != nil {
+		if current.next.X == x {
+			current.next = current.next.next
+			list.sizeDec()
+			return nil
+		}
+		current = current.next
+	}
+	return nil
+}
+
 //sizeInc
 func (list *LinkedList) sizeInc() {
 	v := int(reflect.ValueOf((*list.Head).X).Int())
 	list.Head.X = v + 1
+}
+
+//sizeDnc
+func (list *LinkedList) sizeDec() {
+	v := int(reflect.ValueOf((*list.Head).X).Int())
+	list.Head.X = v - 1
+}
+
+/**
+  打印链表信息
+*/
+func (list *LinkedList) PrintList() {
+	empty := list.IsEmpty()
+	if empty {
+		fmt.Println("This is an empty list")
+		return
+	}
+	current := list.Head.next
+	fmt.Println("The elements is:")
+	i := 0
+	for ; ; i++ {
+		if current.next == nil {
+			break
+		}
+		fmt.Printf("INode%d ,value:%v -> ", i, current.X)
+		current = current.next
+	}
+	fmt.Printf("Node%d value:%v", i+1, current.X)
+	return
+
 }
