@@ -8,12 +8,23 @@ import (
 	"io/ioutil"
 	"strings"
     "strconv"
+    "github.com/Shopify/sarama"
+	"log"
+	"os/signal"
 )
 
 var MapCrawlerSpeed map[string]int
 var AllTimeStamp [86400]*list.List
 var ConfigFile string = "/home/kang/work/src/github.com/broadroad/gobianli/LinkedList/host.go"
 
+
+type Scheduler struct {
+    Consumer sarama.Consumer
+}
+
+func NewScheduler() *Scheduler {
+    return &Scheduler{}
+}
 // init a list of 86400
 func init()  {
     MapCrawlerSpeed = make(map[string]int)
@@ -22,6 +33,7 @@ func init()  {
         listi.PushBack(i)
         AllTimeStamp[i] = listi
     }
+    
     ReadConfig()
 }
 
@@ -44,7 +56,51 @@ func ReadConfig(){
     }
 }
 
-func Start()  {
+func (s *Scheduler)ConsumerUrls() {
+
+    urlConsumer, err := s.Consumer.ConsumePartition("url", 0, 0)
+    if err != nil {
+        panic(err)
+    }
+
+    defer func() {
+        if err := urlConsumer.Close(); err != nil {
+            log.Fatalln(err)
+        }
+    }()
+
+    //Trap SIGINT to trigger a shutdown
+    signals := make(chan os.Signal, 1)
+    signal.Notify(signals, os.Interrupt)
+
+    consumed := 0
+    ConsumerLoop:
+    for {
+        select {
+        case msg:= <-urlConsumer.Messages():
+            log.Printf("Consumed message offset %d\n", msg.Offset)
+            consumed++
+        case <- signals:
+            break ConsumerLoop
+        }
+    }
+    log.Printf("Consumed: %d\n", consumed)
+}
+
+func (scheduler *Scheduler)Start()  {
+    consumer, err := sarama.NewConsumer([]string{"localhost:9092"}, nil)
+    if err != nil {
+        panic(err)
+    }
+    fmt.Println("kafka client has been connected")
+
+    scheduler.Consumer = consumer
+    defer func ()  {
+        if err = scheduler.Consumer.Close(); err != nil {
+            log.Fatalln(err)
+        }
+    }()
+    go scheduler.ConsumerUrls()
     timer := time.NewTicker(1 * time.Second)
     timerConfig := time.NewTicker(10 * time.Second)
     for {
@@ -65,6 +121,6 @@ func Start()  {
 }   
 
 func main() {
-
-    Start()
+    s := NewScheduler()
+    s.Start()
 }
